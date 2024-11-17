@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "modules"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fire>=0.7.0",
+    "huggingface-hub>=0.26.2",
+    "lightning>=2.4.0",
+    "litdata>=0.2.30",
+    "matplotlib>=3.9.2",
+    "mir-eval>=0.7",
+    "modules",
+    "numpy>=2.1.3",
+    "pretty-midi>=0.2.10",
+    "pydantic>=2.9.2",
+    "pyyaml>=6.0.2",
+    "soundfile>=0.12.1",
+    "streamlit>=1.40.1",
+    "torch>=2.5.1",
+    "torchaudio>=2.5.1",
+    "tqdm>=4.67.0",
+]
+
+[tool.uv.sources]
+modules = { workspace = true }

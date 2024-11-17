@@ -1,0 +1,388 @@
+{
+    "$defs": {
+        "DatasetConfig": {
+            "properties": {
+                "dataset_dir": {
+                    "default": "maetsro-v3.0.0",
+                    "title": "Dataset Dir",
+                    "type": "string"
+                },
+                "segment_seconds": {
+                    "default": 20.0,
+                    "title": "Segment Seconds",
+                    "type": "integer"
+                }
+            },
+            "title": "DatasetConfig",
+            "type": "object"
+        },
+        "MelSpectrogramConfig": {
+            "properties": {
+                "sample_rate": {
+                    "default": 16000,
+                    "title": "Sample Rate",
+                    "type": "integer"
+                },
+                "n_fft": {
+                    "default": 2048,
+                    "title": "N Fft",
+                    "type": "integer"
+                },
+                "win_length": {
+                    "default": 2048,
+                    "title": "Win Length",
+                    "type": "integer"
+                },
+                "hop_length": {
+                    "default": 512,
+                    "title": "Hop Length",
+                    "type": "integer"
+                },
+                "f_min": {
+                    "default": 30,
+                    "title": "F Min",
+                    "type": "number"
+                },
+                "f_max": {
+                    "anyOf": [
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": 8000,
+                    "title": "F Max"
+                },
+                "pad": {
+                    "anyOf": [
+                        {
+                            "type": "integer"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Pad"
+                },
+                "n_mels": {
+                    "default": 229,
+                    "title": "N Mels",
+                    "type": "integer"
+                },
+                "window_fn": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Window Fn"
+                },
+                "power": {
+                    "default": 1.0,
+                    "title": "Power",
+                    "type": "number"
+                },
+                "normalized": {
+                    "anyOf": [
+                        {
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Normalized"
+                },
+                "wkwargs": {
+                    "anyOf": [
+                        {
+                            "type": "object"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Wkwargs"
+                },
+                "center": {
+                    "anyOf": [
+                        {
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Center"
+                },
+                "pad_mode": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Pad Mode"
+                },
+                "onesided": {
+                    "anyOf": [
+                        {
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Onesided"
+                },
+                "norm": {
+                    "default": "slaney",
+                    "title": "Norm",
+                    "type": "string"
+                },
+                "mel_scale": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": "htk",
+                    "title": "Mel Scale"
+                }
+            },
+            "title": "MelSpectrogramConfig",
+            "type": "object"
+        },
+        "MidiConfig": {
+            "properties": {
+                "min_pitch": {
+                    "default": 21,
+                    "title": "Min Pitch",
+                    "type": "integer"
+                },
+                "max_pitch": {
+                    "default": 108,
+                    "title": "Max Pitch",
+                    "type": "integer"
+                }
+            },
+            "title": "MidiConfig",
+            "type": "object"
+        },
+        "ModelConfig": {
+            "properties": {
+                "model_complexity": {
+                    "default": 48,
+                    "title": "Model Complexity",
+                    "type": "integer"
+                }
+            },
+            "title": "ModelConfig",
+            "type": "object"
+        },
+        "TrainingConfig": {
+            "properties": {
+                "mode": {
+                    "default": "note",
+                    "enum": [
+                        "note",
+                        "pedal"
+                    ],
+                    "title": "Mode",
+                    "type": "string"
+                },
+                "accelerator": {
+                    "default": "gpu",
+                    "title": "Accelerator",
+                    "type": "string"
+                },
+                "devices": {
+                    "default": "0",
+                    "title": "Devices",
+                    "type": "string"
+                },
+                "precision": {
+                    "anyOf": [
+                        {
+                            "enum": [
+                                64,
+                                32,
+                                16
+                            ],
+                            "type": "integer"
+                        },
+                        {
+                            "enum": [
+                                "transformer-engine",
+                                "transformer-engine-float16",
+                                "16-true",
+                                "16-mixed",
+                                "bf16-true",
+                                "bf16-mixed",
+                                "32-true",
+                                "64-true"
+                            ],
+                            "type": "string"
+                        },
+                        {
+                            "enum": [
+                                "64",
+                                "32",
+                                "16",
+                                "bf16"
+                            ],
+                            "type": "string"
+                        }
+                    ],
+                    "default": "32",
+                    "title": "Precision"
+                },
+                "batch_size": {
+                    "default": 32,
+                    "title": "Batch Size",
+                    "type": "integer"
+                },
+                "num_workers": {
+                    "default": 4,
+                    "title": "Num Workers",
+                    "type": "integer"
+                },
+                "learning_rate": {
+                    "default": 0.0001,
+                    "title": "Learning Rate",
+                    "type": "number"
+                },
+                "max_epochs": {
+                    "default": 100,
+                    "title": "Max Epochs",
+                    "type": "integer"
+                },
+                "optimizer": {
+                    "const": "adam",
+                    "default": "adam",
+                    "enum": [
+                        "adam"
+                    ],
+                    "title": "Optimizer",
+                    "type": "string"
+                },
+                "lr_scheduler": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Lr Scheduler"
+                },
+                "output_dir": {
+                    "default": "output",
+                    "title": "Output Dir",
+                    "type": "string"
+                },
+                "logger": {
+                    "default": "tensorboard",
+                    "title": "Logger",
+                    "type": "string"
+                },
+                "logger_name": {
+                    "default": "default",
+                    "title": "Logger Name",
+                    "type": "string"
+                },
+                "logger_project": {
+                    "default": "piano-transcription-research",
+                    "title": "Logger Project",
+                    "type": "string"
+                }
+            },
+            "title": "TrainingConfig",
+            "type": "object"
+        }
+    },
+    "properties": {
+        "mel_spectrogram": {
+            "$ref": "#/$defs/MelSpectrogramConfig",
+            "default": {
+                "sample_rate": 16000,
+                "n_fft": 2048,
+                "win_length": 2048,
+                "hop_length": 512,
+                "f_min": 30.0,
+                "f_max": 8000.0,
+                "pad": null,
+                "n_mels": 229,
+                "window_fn": null,
+                "power": 1.0,
+                "normalized": null,
+                "wkwargs": null,
+                "center": null,
+                "pad_mode": null,
+                "onesided": null,
+                "norm": "slaney",
+                "mel_scale": "htk"
+            }
+        },
+        "midi": {
+            "$ref": "#/$defs/MidiConfig",
+            "default": {
+                "min_pitch": 21,
+                "max_pitch": 108
+            }
+        },
+        "dataset": {
+            "$ref": "#/$defs/DatasetConfig",
+            "default": {
+                "dataset_dir": "maetsro-v3.0.0",
+                "segment_seconds": 20.0
+            }
+        },
+        "training": {
+            "$ref": "#/$defs/TrainingConfig",
+            "default": {
+                "mode": "note",
+                "accelerator": "gpu",
+                "devices": "0",
+                "precision": "32",
+                "batch_size": 32,
+                "num_workers": 4,
+                "learning_rate": 0.0001,
+                "max_epochs": 100,
+                "optimizer": "adam",
+                "lr_scheduler": null,
+                "output_dir": "output",
+                "logger": "tensorboard",
+                "logger_name": "default",
+                "logger_project": "piano-transcription-research"
+            }
+        },
+        "model": {
+            "$ref": "#/$defs/ModelConfig",
+            "default": {
+                "model_complexity": 48
+            }
+        }
+    },
+    "title": "Config",
+    "type": "object"
+}
