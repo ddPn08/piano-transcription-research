@@ -10,7 +10,7 @@ from .encoder import Encoder
 
 class HftTransformerParams(BaseModel):
     n_frame: int
-    n_bin: int
+    n_mels: int
     cnn_channel: int
     cnn_kernel: int
     hid_dim: int
@@ -27,32 +27,23 @@ class HftTransformer(PianoTranscriptionBaseModel):
     mode = "note"
 
     @staticmethod
-    def preprocess_mel_spectrogram(mel_spec: torch.Tensor):
-        return torch.log(torch.clamp(mel_spec, 1e-8))
-
-    @staticmethod
-    def calculate_loss(
-        onset_pred: torch.Tensor,
-        onset_label: torch.Tensor,
-        offset_pred: torch.Tensor,
-        offset_label: torch.Tensor,
-        frame_pred: torch.Tensor,
-        frame_label: torch.Tensor,
-        velocity_pred: torch.Tensor | None = None,
-        velocity_label: torch.Tensor | None = None,
+    def preprocess_label(
+        onset: torch.Tensor,
+        offset: torch.Tensor,
+        frame: torch.Tensor,
+        velocity: torch.Tensor,
     ):
-        onset_loss = F.binary_cross_entropy_with_logits(onset_pred, onset_label)
-        offset_loss = F.binary_cross_entropy_with_logits(offset_pred, offset_label)
-        frame_loss = F.binary_cross_entropy_with_logits(frame_pred, frame_label)
-        velocity_loss = F.cross_entropy(velocity_pred, velocity_label)
-
-        return onset_loss, offset_loss, frame_loss, velocity_loss
+        onset = onset.float()
+        offset = offset.float()
+        frame = frame.float()
+        velocity = velocity.long()
+        return onset, offset, frame, velocity
 
     def __init__(self, params: HftTransformerParams):
         super().__init__()
         self.encoder = Encoder(
             n_frame=params.n_frame,
-            n_bin=params.n_bin,
+            n_bin=params.n_mels,
             cnn_channel=params.cnn_channel,
             cnn_kernel=params.cnn_kernel,
             hid_dim=params.hid_dim,
@@ -64,7 +55,7 @@ class HftTransformer(PianoTranscriptionBaseModel):
         )
         self.decoder = Decoder(
             n_frame=params.n_frame,
-            n_bin=params.n_bin,
+            n_bin=params.n_mels,
             n_note=params.n_note,
             n_velocity=params.n_velocity,
             hid_dim=params.hid_dim,
@@ -83,29 +74,21 @@ class HftTransformerPedal(PianoTranscriptionBaseModel):
     mode = "pedal"
 
     @staticmethod
-    def preprocess_mel_spectrogram(mel_spec: torch.Tensor):
-        return torch.log(torch.clamp(mel_spec, 1e-8))
-
-    @staticmethod
-    def calculate_loss(
-        onset_pred: torch.Tensor,
-        onset_label: torch.Tensor,
-        offset_pred: torch.Tensor,
-        offset_label: torch.Tensor,
-        frame_pred: torch.Tensor,
-        frame_label: torch.Tensor,
+    def preprocess_label(
+        onset: torch.Tensor,
+        offset: torch.Tensor,
+        frame: torch.Tensor,
     ):
-        onset_loss = F.binary_cross_entropy_with_logits(onset_pred, onset_label)
-        offset_loss = F.binary_cross_entropy_with_logits(offset_pred, offset_label)
-        frame_loss = F.binary_cross_entropy_with_logits(frame_pred, frame_label)
-
-        return onset_loss, offset_loss, frame_loss
+        onset = onset.float()
+        offset = offset.float()
+        frame = frame.float()
+        return onset, offset, frame
 
     def __init__(self, params: HftTransformerParams):
         super().__init__()
         self.encoder = Encoder(
             n_frame=params.n_frame,
-            n_bin=params.n_bin,
+            n_bin=params.n_mels,
             cnn_channel=params.cnn_channel,
             cnn_kernel=params.cnn_kernel,
             hid_dim=params.hid_dim,
@@ -117,7 +100,7 @@ class HftTransformerPedal(PianoTranscriptionBaseModel):
         )
         self.decoder = DecoderPedal(
             n_frame=params.n_frame,
-            n_bin=params.n_bin,
+            n_bin=params.n_mels,
             hid_dim=params.hid_dim,
             n_layers=params.n_layers,
             n_heads=params.n_heads,

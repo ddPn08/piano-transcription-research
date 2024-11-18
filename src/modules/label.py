@@ -156,25 +156,28 @@ def create_label_with_sharpness(
                 num_frames=num_frames,
             )
 
-        is_on = False
-        for frame_idx in range(
-            onpedal_frame - onset_sharpness, offpedal_frame + offset_sharpness + 1
-        ):
-            onset_value = pedal_onset_label[frame_idx]
-            offset_value = pedal_offset_label[frame_idx]
-            if not is_on and onset_value > 0.8:
-                is_on = True
-                pedal_frame_label[frame_idx] = 1
-                continue
+        # is_on = False
+        # for frame_idx in range(
+        #     onpedal_frame - onset_sharpness, offpedal_frame + offset_sharpness + 1
+        # ):
+        #     if frame_idx < 0 or frame_idx >= num_frames:
+        #         continue
+        #     onset_value = pedal_onset_label[frame_idx]
+        #     offset_value = pedal_offset_label[frame_idx]
+        #     if not is_on and onset_value > 0.8:
+        #         is_on = True
+        #         pedal_frame_label[frame_idx] = 1
+        #         continue
 
-            if is_on and offset_value > 0.8:
-                is_on = False
-                break
+        #     if is_on and offset_value > 0.8:
+        #         is_on = False
+        #         break
 
-            if is_on:
-                pedal_frame_label[frame_idx] = 1
+        #     if is_on:
+        #         pedal_frame_label[frame_idx] = 1
+        pedal_frame_label[onpedal_frame : offpedal_frame + 1] = 1
 
-    note_label = MidiLabel(
+    return MidiLabel(
         onset=onset_label,
         offset=offset_label,
         frame=frame_label > 0,
@@ -183,8 +186,6 @@ def create_label_with_sharpness(
         pedal_offset=pedal_offset_label,
         pedal_frame=pedal_frame_label > 0,
     )
-
-    return note_label
 
 
 def create_label(
@@ -237,7 +238,7 @@ def create_label(
 
 
 def detect_event(
-    data: torch.Tensor,
+    data: np.ndarray,
     thredhold: float,
 ):
     result: List[Detection] = []
@@ -357,10 +358,10 @@ def process_label(
 
 
 def extract_notes(
-    onset: torch.Tensor,
-    offset: torch.Tensor,
-    frame: torch.Tensor,
-    velocity: torch.Tensor,
+    onset: np.ndarray,
+    offset: np.ndarray,
+    frame: np.ndarray,
+    velocity: np.ndarray,
     min_midi: int,
     max_midi: int,
     onset_threshold=0.5,
@@ -371,7 +372,7 @@ def extract_notes(
 ):
     num_notes = max_midi - min_midi + 1
 
-    intervals: List[Tuple[float, float]] = []
+    intervals: List[Tuple[int, int]] = []
     pitches: List[int] = []
     velocities: List[float] = []
 
@@ -388,6 +389,9 @@ def extract_notes(
             velocity,
             mode_offset,
         ):
+            if time_onset >= offset_value:
+                continue
+
             if mode_velocity != "ignore_zero":
                 intervals.append((time_onset, offset_value))
                 pitches.append(pitch_value)
@@ -405,18 +409,20 @@ def extract_notes(
                     intervals[len(intervals) - 1][0] < intervals[len(intervals) - 2][1]
                 )
             ):
-                intervals[len(intervals) - 2] = (
-                    intervals[len(intervals) - 2][0],
-                    intervals[len(intervals) - 1][0],
-                )
+                new_onset = intervals[len(intervals) - 2][0]
+                new_offset = intervals[len(intervals) - 1][1]
+                intervals[len(intervals) - 2] = (new_onset, new_offset)
+                intervals.pop()
+                pitches.pop()
+                velocities.pop()
 
     return np.array(pitches), np.array(intervals), np.array(velocities)
 
 
 def extract_pedals(
-    onset: torch.Tensor,
-    offset: torch.Tensor,
-    frame: torch.Tensor,
+    onset: np.ndarray,
+    offset: np.ndarray,
+    frame: np.ndarray,
     onset_threshold=0.5,
     offset_threshold=0.5,
     frame_threshold=0.5,
@@ -441,3 +447,32 @@ def extract_pedals(
         intervals.append((time_onset, offset_value))
 
     return np.array(intervals)
+
+
+def create_notes(
+    pitches: np.ndarray,
+    intervals: np.ndarray,
+    velocities: np.ndarray,
+    min_midi: int,
+):
+    notes: List[Note] = []
+    for p, i, v in zip(pitches, intervals, velocities):
+        onset = i[0].item()
+        offset = i[1].item()
+        pitch = p.item() + min_midi
+        velocity = min(127, max(0, int(v.item() * 127)))
+
+        notes.append(Note(pitch, onset, offset, velocity))
+
+    return notes
+
+
+def create_pedals(
+    intervals: np.ndarray,
+):
+    pedals: List[Pedal] = []
+    for onset, offset in intervals:
+        onset = onset.item()
+        offset = offset.item()
+        pedals.append(Pedal(onset, offset))
+    return pedals

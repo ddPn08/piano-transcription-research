@@ -90,7 +90,7 @@ def notes_to_frames(pitches: np.ndarray, intervals: np.ndarray, shape: Tuple):
     """
     roll = np.zeros(tuple(shape))
     for pitch, (onset, offset) in zip(pitches, intervals):
-        roll[onset:offset, pitch] = 1
+        roll[round(onset):round(offset), pitch] = 1
 
     time = np.arange(roll.shape[0])
     freqs = [roll[t, :].nonzero()[0] for t in time]
@@ -114,7 +114,7 @@ def pedals_to_frames(intervals: torch.Tensor, shape: Tuple):
     freq_value = 20
     roll = np.zeros(tuple(shape))
     for onset, offset in intervals:
-        roll[onset:offset, freq_value] = 1
+        roll[round(onset):round(offset), freq_value] = 1
 
     time = np.arange(roll.shape[0])
     freqs = [roll[t, :].nonzero()[0] for t in time]

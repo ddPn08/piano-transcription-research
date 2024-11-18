@@ -7,13 +7,34 @@
                     "title": "Dataset Dir",
                     "type": "string"
                 },
-                "segment_seconds": {
-                    "default": 20.0,
-                    "title": "Segment Seconds",
+                "segment_frames": {
+                    "default": 128,
+                    "title": "Segment Frames",
                     "type": "integer"
                 }
             },
             "title": "DatasetConfig",
+            "type": "object"
+        },
+        "HftTransformerConfig": {
+            "properties": {
+                "margin_b": {
+                    "default": 32,
+                    "title": "Margin B",
+                    "type": "integer"
+                },
+                "margin_f": {
+                    "default": 32,
+                    "title": "Margin F",
+                    "type": "integer"
+                },
+                "num_frame": {
+                    "default": 128,
+                    "title": "Num Frame",
+                    "type": "integer"
+                }
+            },
+            "title": "HftTransformerConfig",
             "type": "object"
         },
         "MelSpectrogramConfig": {
@@ -172,21 +193,21 @@
         },
         "MidiConfig": {
             "properties": {
-                "min_pitch": {
+                "min_midi": {
                     "default": 21,
-                    "title": "Min Pitch",
+                    "title": "Min Midi",
                     "type": "integer"
                 },
-                "max_pitch": {
+                "max_midi": {
                     "default": 108,
-                    "title": "Max Pitch",
+                    "title": "Max Midi",
                     "type": "integer"
                 }
             },
             "title": "MidiConfig",
             "type": "object"
         },
-        "ModelConfig": {
+        "OnsetsAndFramesConfig": {
             "properties": {
                 "model_complexity": {
                     "default": 48,
@@ -194,7 +215,7 @@
                     "type": "integer"
                 }
             },
-            "title": "ModelConfig",
+            "title": "OnsetsAndFramesConfig",
             "type": "object"
         },
         "TrainingConfig": {
@@ -314,6 +335,18 @@
                     "default": "piano-transcription-research",
                     "title": "Logger Project",
                     "type": "string"
+                },
+                "resume_from_checkpoint": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Resume From Checkpoint"
                 }
             },
             "title": "TrainingConfig",
@@ -346,15 +379,15 @@
         "midi": {
             "$ref": "#/$defs/MidiConfig",
             "default": {
-                "min_pitch": 21,
-                "max_pitch": 108
+                "min_midi": 21,
+                "max_midi": 108
             }
         },
         "dataset": {
             "$ref": "#/$defs/DatasetConfig",
             "default": {
                 "dataset_dir": "maetsro-v3.0.0",
-                "segment_seconds": 20.0
+                "segment_frames": 128
             }
         },
         "training": {
@@ -373,14 +406,31 @@
                 "output_dir": "output",
                 "logger": "tensorboard",
                 "logger_name": "default",
-                "logger_project": "piano-transcription-research"
+                "logger_project": "piano-transcription-research",
+                "resume_from_checkpoint": null
             }
         },
-        "model": {
-            "$ref": "#/$defs/ModelConfig",
-            "default": {
-                "model_complexity": 48
-            }
+        "onsets_and_frames": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/OnsetsAndFramesConfig"
+                },
+                {
+                    "type": "null"
+                }
+            ],
+            "default": null
+        },
+        "hft_transformer": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/HftTransformerConfig"
+                },
+                {
+                    "type": "null"
+                }
+            ],
+            "default": null
         }
     },
     "title": "Config",

@@ -1,18 +1,7 @@
 import torch
-import torch.nn.functional as F
 from torch import nn
 
 from . import PianoTranscriptionBaseModel
-
-
-def weighted_mse_loss(
-    velocity_pred: torch.Tensor, velocity_label: torch.Tensor, onset_label: torch.Tensor
-):
-    denominator = onset_label.sum()
-    if denominator.item() == 0:
-        return denominator
-    else:
-        return (onset_label * (velocity_label - velocity_pred) ** 2).sum() / denominator
 
 
 class BiLSTM(nn.Module):
@@ -118,29 +107,6 @@ class OnsetsAndFrames(PianoTranscriptionBaseModel):
         velocity = velocity.float() / 127.0
         return onset, offset, frame, velocity
 
-    @staticmethod
-    def preprocess_mel_spectrogram(mel_spec: torch.Tensor):
-        mel_spec = torch.log(torch.clamp(mel_spec, min=1e-5))
-        mel_spec = mel_spec.transpose(-1, -2)
-        return mel_spec
-
-    @staticmethod
-    def calculate_loss(
-        onset_pred: torch.Tensor,
-        onset_label: torch.Tensor,
-        offset_pred: torch.Tensor,
-        offset_label: torch.Tensor,
-        frame_pred: torch.Tensor,
-        frame_label: torch.Tensor,
-        velocity_pred: torch.Tensor | None = None,
-        velocity_label: torch.Tensor | None = None,
-    ):
-        onset_loss = F.binary_cross_entropy_with_logits(onset_pred, onset_label)
-        offset_loss = F.binary_cross_entropy_with_logits(offset_pred, offset_label)
-        frame_loss = F.binary_cross_entropy_with_logits(frame_pred, frame_label)
-        velocity_loss = weighted_mse_loss(velocity_pred, velocity_label, onset_label)
-        return onset_loss, offset_loss, frame_loss, velocity_loss
-
     def __init__(
         self, input_features: int, output_features: int, model_complexity: int = 48
     ):
@@ -186,26 +152,6 @@ class OnsetsAndFrames(PianoTranscriptionBaseModel):
 
 class OnsetsAndFramesPedal(PianoTranscriptionBaseModel):
     mode = "pedal"
-
-    @staticmethod
-    def preprocess_mel_spectrogram(mel_spec: torch.Tensor):
-        mel_spec = torch.log(torch.clamp(mel_spec, min=1e-5))
-        mel_spec = mel_spec.transpose(-1, -2)
-        return mel_spec
-
-    @staticmethod
-    def calculate_loss(
-        onset_pred: torch.Tensor,
-        onset_label: torch.Tensor,
-        offset_pred: torch.Tensor,
-        offset_label: torch.Tensor,
-        frame_pred: torch.Tensor,
-        frame_label: torch.Tensor,
-    ):
-        onset_loss = F.binary_cross_entropy_with_logits(onset_pred, onset_label)
-        offset_loss = F.binary_cross_entropy_with_logits(offset_pred, offset_label)
-        frame_loss = F.binary_cross_entropy_with_logits(frame_pred, frame_label)
-        return onset_loss, offset_loss, frame_loss
 
     def __init__(self, input_features: int, model_complexity: int = 48):
         super().__init__()

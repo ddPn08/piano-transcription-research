@@ -7,7 +7,7 @@ import yaml
 
 from modules.audio import load_audio
 from modules.config import Config
-from modules.label import extract_notes, extract_pedals
+from modules.label import create_notes, create_pedals, extract_notes, extract_pedals
 from modules.midi import create_midi
 from modules.models.onsets_and_frames import OnsetsAndFrames, OnsetsAndFramesPedal
 
@@ -49,8 +49,8 @@ def main(
     state_dict = fix_state_dict(state_dict)
     model = OnsetsAndFrames(
         config.mel_spectrogram.n_mels,
-        config.midi.max_pitch - config.midi.min_pitch + 1,
-        config.model.model_complexity,
+        config.midi.max_midi - config.midi.min_midi + 1,
+        config.onsets_and_frames.model_complexity,
     )
     model.load_state_dict(state_dict)
     model.to(device)
@@ -63,7 +63,7 @@ def main(
         )
         state_dict = fix_state_dict(state_dict)
         pedal_model = OnsetsAndFramesPedal(
-            config.mel_spectrogram.n_mels, config.model.model_complexity
+            config.mel_spectrogram.n_mels, config.onsets_and_frames.model_complexity
         )
         pedal_model.load_state_dict(state_dict)
         pedal_model.to(device)
@@ -75,25 +75,23 @@ def main(
     num_frames = (len(audio) - 1) // config.mel_spectrogram.hop_length + 1
 
     onset_pred_all = torch.zeros(
-        (num_frames, config.midi.max_pitch - config.midi.min_pitch + 1)
+        (num_frames, config.midi.max_midi - config.midi.min_midi + 1)
     )
     offset_pred_all = torch.zeros(
-        (num_frames, config.midi.max_pitch - config.midi.min_pitch + 1)
+        (num_frames, config.midi.max_midi - config.midi.min_midi + 1)
     )
     frame_pred_all = torch.zeros(
-        (num_frames, config.midi.max_pitch - config.midi.min_pitch + 1)
+        (num_frames, config.midi.max_midi - config.midi.min_midi + 1)
     )
     velocity_pred_all = torch.zeros(
-        (num_frames, config.midi.max_pitch - config.midi.min_pitch + 1)
+        (num_frames, config.midi.max_midi - config.midi.min_midi + 1)
     )
 
     pedal_onset_pred_all = torch.zeros(num_frames)
     pedal_offset_pred_all = torch.zeros(num_frames)
     pedal_frame_pred_all = torch.zeros(num_frames)
 
-    segment_samples = (
-        config.dataset.segment_seconds * config.mel_spectrogram.sample_rate
-    )
+    segment_samples = config.dataset.segment_frames * config.mel_spectrogram.hop_length
 
     with torch.no_grad():
         for i in tqdm.tqdm(range(0, len(audio), segment_samples)):
@@ -161,8 +159,8 @@ def main(
         onset_threshold=onset_threshold,
         offset_threshold=offset_threshold,
         frame_threshold=frame_threshold,
-        min_midi=config.midi.min_pitch,
-        max_midi=config.midi.max_pitch,
+        min_midi=config.midi.min_midi,
+        max_midi=config.midi.max_midi,
     )
     i_pedal_est = extract_pedals(
         pedal_onset_pred_all,
@@ -178,12 +176,13 @@ def main(
     i_est = (i_est * scaling).reshape(-1, 2)
     i_pedal_est = (i_pedal_est * scaling).reshape(-1, 2)
 
+    notes = create_notes(p_est, i_est, v_est, config.midi.min_midi)
+    pedals = create_pedals(i_pedal_est)
+
     midi = create_midi(
-        p_est,
-        i_est,
-        v_est,
-        i_pedal_est,
-        config.midi.min_pitch,
+        notes,
+        pedals,
+        config.midi.min_midi,
     )
     midi.write(output_path)
 

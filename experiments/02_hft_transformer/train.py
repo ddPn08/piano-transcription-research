@@ -12,8 +12,12 @@ from lightning.pytorch.callbacks import (
 
 from modules.config import Config
 from modules.dataset.maestro import MaestroDataset
-from modules.lightning.modules.onsets_and_frames import TranscriberModule
-from modules.models.onsets_and_frames import OnsetsAndFrames, OnsetsAndFramesPedal
+from modules.lightning.modules.hft_transformer import TranscriberModule
+from modules.models.hft_transformer import (
+    HftTransformer,
+    HftTransformerParams,
+    HftTransformerPedal,
+)
 
 torch.set_float32_matmul_precision("medium")
 
@@ -24,8 +28,8 @@ def main(
     with open(config) as f:
         config: Config = Config(**yaml.safe_load(f))
 
-    if config.onsets_and_frames is None:
-        raise ValueError("config.onsets_and_frames is None")
+    if config.hft_transformer is None:
+        raise ValueError("config.hft_transformer is None")
 
     dataset = MaestroDataset(config, "train")
     val_dataset = MaestroDataset(config, "validation")
@@ -45,16 +49,25 @@ def main(
         collate_fn=dataset.collate_fn,
     )
 
+    params = HftTransformerParams(
+        n_frame=config.dataset.segment_frames,
+        n_mels=config.mel_spectrogram.n_mels,
+        cnn_channel=4,
+        cnn_kernel=5,
+        hid_dim=256,
+        n_margin=config.hft_transformer.margin_b,
+        n_layers=3,
+        n_heads=4,
+        pf_dim=512,
+        dropout=0.1,
+        n_velocity=127,
+        n_note=config.midi.max_midi - config.midi.min_midi + 1,
+    )
+
     model = (
-        OnsetsAndFrames(
-            config.mel_spectrogram.n_mels,
-            config.midi.max_midi - config.midi.min_midi + 1,
-            config.onsets_and_frames.model_complexity,
-        )
+        HftTransformer(params)
         if config.training.mode == "note"
-        else OnsetsAndFramesPedal(
-            config.mel_spectrogram.n_mels, config.onsets_and_frames.model_complexity
-        )
+        else HftTransformerPedal(params)
     )
 
     if config.training.optimizer == "adam":

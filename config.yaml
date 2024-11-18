@@ -4,18 +4,15 @@ mel_spectrogram:
   win_length: 2048
   hop_length: 512
   f_min: 30
-  f_max: 8000
   n_mels: 229
   power: 1
   norm: slaney
 midi:
-  min_pitch: 21
-  max_pitch: 108
+  min_midi: 21
+  max_midi: 108
 dataset:
   dataset_dir: maetsro-v3.0.0
   segment_seconds: 20
-model:
-  model_complexity: 48
 training:
   mode: note
   accelerator: gpu
@@ -29,3 +26,5 @@ training:
   logger: tensorboard
   logger_name: default
   logger_project: piano-transcription-research
+model:
+  model_complexity: 48

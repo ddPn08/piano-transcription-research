@@ -13,7 +13,6 @@ dependencies = [
     "fire>=0.7.0",
     "huggingface-hub>=0.26.2",
     "lightning>=2.4.0",
-    "litdata>=0.2.30",
     "matplotlib>=3.9.2",
     "mir-eval>=0.7",
     "modules",
@@ -23,9 +22,11 @@ dependencies = [
     "pyyaml>=6.0.2",
     "soundfile>=0.12.1",
     "streamlit>=1.40.1",
+    "tensorboard>=2.18.0",
     "torch>=2.5.1",
     "torchaudio>=2.5.1",
     "tqdm>=4.67.0",
+    "wandb>=0.18.7",
 ]
 
 [tool.uv.sources]

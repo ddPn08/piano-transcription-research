@@ -25,20 +25,3 @@ class PianoTranscriptionBaseModel(nn.Module):
             return onset, offset, frame, velocity
         else:
             return onset, offset, frame
-
-    @staticmethod
-    def preprocess_mel_spectrogram(mel_spec: torch.Tensor):
-        return mel_spec
-
-    @staticmethod
-    def calculate_loss(
-        onset_pred: torch.Tensor,
-        onset_label: torch.Tensor,
-        offset_pred: torch.Tensor,
-        offset_label: torch.Tensor,
-        frame_pred: torch.Tensor,
-        frame_label: torch.Tensor,
-        velocity_pred: torch.Tensor | None = None,
-        velocity_label: torch.Tensor | None = None,
-    ):
-        raise NotImplementedError

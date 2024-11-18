@@ -45,13 +45,13 @@ class MelSpectrogramConfig(BaseModel):
 
 
 class MidiConfig(BaseModel):
-    min_pitch: int = 21
-    max_pitch: int = 108
+    min_midi: int = 21
+    max_midi: int = 108
 
 
 class DatasetConfig(BaseModel):
     dataset_dir: str = "maetsro-v3.0.0"
-    segment_seconds: int = 20.0
+    segment_frames: int = 128
 
 
 class TrainingConfig(BaseModel):
@@ -74,13 +74,18 @@ class TrainingConfig(BaseModel):
     resume_from_checkpoint: str | None = None
 
 
-class ModelConfig(BaseModel):
+class OnsetsAndFramesConfig(BaseModel):
     model_complexity: int = 48
 
+class HftTransformerConfig(BaseModel):
+    margin_b: int = 32
+    margin_f: int = 32
+    num_frame: int = 128
 
 class Config(BaseModel):
     mel_spectrogram: MelSpectrogramConfig = MelSpectrogramConfig()
     midi: MidiConfig = MidiConfig()
     dataset: DatasetConfig = DatasetConfig()
     training: TrainingConfig = TrainingConfig()
-    model: ModelConfig = ModelConfig()
+    onsets_and_frames: OnsetsAndFramesConfig | None = None
+    hft_transformer: HftTransformerConfig | None = None
