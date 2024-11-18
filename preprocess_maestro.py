@@ -11,8 +11,7 @@ from pydantic import RootModel
 
 from modules.audio import load_audio
 from modules.config import Config
-from modules.dataset import Metadata
-from modules.dataset.maestro import load_metadata
+from modules.dataset.maestro import Metadata, load_metadata
 from modules.label import create_label_with_sharpness
 from modules.midi import parse_midi
 
