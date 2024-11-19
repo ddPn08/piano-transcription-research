@@ -1,15 +1,3 @@
-mel_spectrogram:
-  sample_rate: 16000
-  n_fft: 2048
-  win_length: 2048
-  hop_length: 256
-  f_min: 0
-  n_mels: 256
-  pad_mode: constant
-  norm: slaney
-midi:
-  min_midi: 21
-  max_midi: 108
 dataset:
   dataset_dir: ../../maestro-v3.0.0-preprocessed
   segment_frames: 128
@@ -23,10 +11,34 @@ training:
   max_epochs: 100
   optimizer: adam
   output_dir: output
-  logger: tensorboard
-  logger_name: default
-  logger_project: piano-transcription-research
-hft_transformer:
+  save_every_n_epochs: 1
+  logger:
+    type: tensorboard
+    name: default
+model: 
+  type: hft_transformer
+  input:
+    mel_spectrogram:
+      sample_rate: 16000
+      n_fft: 2048
+      win_length: 2048
+      hop_length: 256
+      f_min: 0
+      n_mels: 256
+      pad_mode: constant
+      norm: slaney
+  output:
+    midi:
+      min_midi: 21
+      max_midi: 108
+  num_frame: 128
+  cnn_channel: 4
+  cnn_kernel: 5
+  hid_dim: 256
   margin_b: 32
   margin_f: 32
-  num_frame: 128
+  num_layers: 3
+  num_heads: 4
+  pf_dim: 512
+  dropout: 0.1
+  num_velocity: 127

@@ -1,4 +1,5 @@
 import torch
+from pydantic import BaseModel
 from torch import nn
 
 from . import PianoTranscriptionBaseModel
@@ -91,6 +92,12 @@ class ConvStack(nn.Module):
         return x
 
 
+class OnsetsAndFramesParams(BaseModel):
+    input_features: int
+    output_features: int
+    model_complexity: int = 48
+
+
 class OnsetsAndFrames(PianoTranscriptionBaseModel):
     mode = "note"
 
@@ -107,35 +114,33 @@ class OnsetsAndFrames(PianoTranscriptionBaseModel):
         velocity = velocity.float() / 127.0
         return onset, offset, frame, velocity
 
-    def __init__(
-        self, input_features: int, output_features: int, model_complexity: int = 48
-    ):
+    def __init__(self, params: OnsetsAndFramesParams):
         super().__init__()
 
-        model_size = model_complexity * 16
+        model_size = params.model_complexity * 16
 
         self.onset_stack = nn.Sequential(
-            ConvStack(input_features, model_size),
+            ConvStack(params.input_features, model_size),
             sequence_model(model_size, model_size),
-            nn.Linear(model_size, output_features),
+            nn.Linear(model_size, params.output_features),
         )
         self.offset_stack = nn.Sequential(
-            ConvStack(input_features, model_size),
+            ConvStack(params.input_features, model_size),
             sequence_model(model_size, model_size),
-            nn.Linear(model_size, output_features),
+            nn.Linear(model_size, params.output_features),
         )
         self.frame_stack = nn.Sequential(
-            ConvStack(input_features, model_size),
-            nn.Linear(model_size, output_features),
+            ConvStack(params.input_features, model_size),
+            nn.Linear(model_size, params.output_features),
             nn.Sigmoid(),
         )
         self.combined_stack = nn.Sequential(
-            sequence_model(output_features * 3, model_size),
-            nn.Linear(model_size, output_features),
+            sequence_model(params.output_features * 3, model_size),
+            nn.Linear(model_size, params.output_features),
         )
         self.velocity_stack = nn.Sequential(
-            ConvStack(input_features, model_size),
-            nn.Linear(model_size, output_features),
+            ConvStack(params.input_features, model_size),
+            nn.Linear(model_size, params.output_features),
         )
 
     def forward(self, x: torch.Tensor):
@@ -153,30 +158,29 @@ class OnsetsAndFrames(PianoTranscriptionBaseModel):
 class OnsetsAndFramesPedal(PianoTranscriptionBaseModel):
     mode = "pedal"
 
-    def __init__(self, input_features: int, model_complexity: int = 48):
+    def __init__(self, params: OnsetsAndFramesParams):
         super().__init__()
 
-        output_features = 1
-        model_size = model_complexity * 16
+        model_size = params.model_complexity * 16
 
         self.onset_stack = nn.Sequential(
-            ConvStack(input_features, model_size),
+            ConvStack(params.input_features, model_size),
             sequence_model(model_size, model_size),
-            nn.Linear(model_size, output_features),
+            nn.Linear(model_size, params.output_features),
         )
         self.offset_stack = nn.Sequential(
-            ConvStack(input_features, model_size),
+            ConvStack(params.input_features, model_size),
             sequence_model(model_size, model_size),
-            nn.Linear(model_size, output_features),
+            nn.Linear(model_size, params.output_features),
         )
         self.frame_stack = nn.Sequential(
-            ConvStack(input_features, model_size),
-            nn.Linear(model_size, output_features),
+            ConvStack(params.input_features, model_size),
+            nn.Linear(model_size, params.output_features),
             nn.Sigmoid(),
         )
         self.combined_stack = nn.Sequential(
-            sequence_model(output_features * 3, model_size),
-            nn.Linear(model_size, output_features),
+            sequence_model(params.output_features * 3, model_size),
+            nn.Linear(model_size, params.output_features),
         )
 
     def forward(self, x: torch.Tensor):

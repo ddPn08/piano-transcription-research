@@ -5,6 +5,7 @@ import torch
 import torch.nn.functional as F
 from lightning.pytorch import LightningModule
 
+from modules.audio import create_mel_transform
 from modules.label import extract_notes, extract_pedals
 from modules.models.onsets_and_frames import OnsetsAndFrames, OnsetsAndFramesPedal
 
@@ -22,7 +23,7 @@ def weighted_mse_loss(
         return (onset_label * (velocity_label - velocity_pred) ** 2).sum() / denominator
 
 
-class TranscriberModule(LightningModule):
+class OnsetsAndFramesTrainingModule(LightningModule):
     def __init__(
         self,
         config: Config,
@@ -30,13 +31,17 @@ class TranscriberModule(LightningModule):
         optimizer_class: Any,
     ):
         super().__init__()
+        if config.model.type != "onsets_and_frames":
+            raise ValueError("Model type must be 'onsets_and_frames'")
         self.config = config
         self.mode = model.mode
         self.model = model
         self.optimizer_class = optimizer_class
         self.lr = config.training.learning_rate
 
-        self.mel_transform = config.mel_spectrogram.mel_transform().to(self.device)
+        self.mel_transform = create_mel_transform(
+            config.model.input.mel_spectrogram
+        ).to(self.device)
 
     def forward(self, x: torch.Tensor):
         return self.model(x)
@@ -219,16 +224,16 @@ class TranscriberModule(LightningModule):
                 offset_label[i].cpu().numpy(),
                 frame_label[i].cpu().numpy(),
                 velocity_label[i].cpu().numpy(),
-                self.config.midi.min_midi,
-                self.config.midi.max_midi,
+                self.config.model.output.midi.min_midi,
+                self.config.model.output.midi.max_midi,
             )
             pitches_est, intervals_est, velocities_est = extract_notes(
                 onset_pred[i].sigmoid().detach().cpu().numpy(),
                 offset_pred[i].sigmoid().detach().cpu().numpy(),
                 frame_pred[i].sigmoid().detach().cpu().numpy(),
                 velocity_pred[i].sigmoid().detach().cpu().numpy(),
-                self.config.midi.min_midi,
-                self.config.midi.max_midi,
+                self.config.model.output.midi.min_midi,
+                self.config.model.output.midi.max_midi,
             )
             metrics = evaluate_note(
                 np.array(pitches_ref),
@@ -238,9 +243,9 @@ class TranscriberModule(LightningModule):
                 np.array(intervals_est),
                 np.array(velocities_est),
                 frame_label.shape,
-                self.config.mel_spectrogram.hop_length,
-                self.config.mel_spectrogram.sample_rate,
-                self.config.midi.min_midi,
+                self.config.model.input.mel_spectrogram.hop_length,
+                self.config.model.input.mel_spectrogram.sample_rate,
+                self.config.model.output.midi.min_midi,
             )
 
             for key, value in metrics.items():
@@ -296,8 +301,8 @@ class TranscriberModule(LightningModule):
                 np.array(intervals_ref),
                 np.array(intervals_est),
                 frame_label.shape,
-                self.config.mel_spectrogram.hop_length,
-                self.config.mel_spectrogram.sample_rate,
+                self.config.model.input.mel_spectrogram.hop_length,
+                self.config.model.input.mel_spectrogram.sample_rate,
             )
 
             for key, value in metrics.items():

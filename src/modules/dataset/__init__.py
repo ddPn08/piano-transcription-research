@@ -40,8 +40,8 @@ class TranscriptionDataset(data.Dataset):
         for audio, label, duration in self.files:
             num_frames = int(
                 duration
-                * config.mel_spectrogram.sample_rate
-                / config.mel_spectrogram.hop_length
+                * config.model.input.mel_spectrogram.sample_rate
+                / config.model.input.mel_spectrogram.hop_length
             )
             for i in range(0, num_frames, config.dataset.segment_frames):
                 self.segments.append(
@@ -59,30 +59,36 @@ class TranscriptionDataset(data.Dataset):
     def load_audio(self, audio_path: str, onset_frame: int, offset_frame: int):
         audio: torch.Tensor = torch.load(audio_path, weights_only=True)
 
-        if self.config.hft_transformer is not None:
-            audio_start_frame = onset_frame - self.config.hft_transformer.margin_b
-            audio_end_frame = offset_frame + self.config.hft_transformer.margin_f
+        if self.config.model.type == "hft_transformer":
+            audio_start_frame = onset_frame - self.config.model.margin_b
+            audio_end_frame = offset_frame + self.config.model.margin_f
             audio_start_sample = (
-                audio_start_frame * self.config.mel_spectrogram.hop_length
+                audio_start_frame * self.config.model.input.mel_spectrogram.hop_length
             )
-            audio_end_sample = audio_end_frame * self.config.mel_spectrogram.hop_length
+            audio_end_sample = (
+                audio_end_frame * self.config.model.input.mel_spectrogram.hop_length
+            )
             audio = audio[audio_start_sample:audio_end_sample]
 
             segment_samples = (
                 self.config.dataset.segment_frames
-                + self.config.hft_transformer.margin_b
-                + self.config.hft_transformer.margin_f
-            ) * self.config.mel_spectrogram.hop_length
+                + self.config.model.margin_b
+                + self.config.model.margin_f
+            ) * self.config.model.input.mel_spectrogram.hop_length
             pad = torch.zeros(
                 segment_samples - len(audio), dtype=audio.dtype, device=audio.device
             )
             audio = torch.cat([audio, pad])
         else:
-            onset_sample = onset_frame * self.config.mel_spectrogram.hop_length
-            offset_sample = offset_frame * self.config.mel_spectrogram.hop_length
+            onset_sample = (
+                onset_frame * self.config.model.input.mel_spectrogram.hop_length
+            )
+            offset_sample = (
+                offset_frame * self.config.model.input.mel_spectrogram.hop_length
+            )
             segment_samples = (
                 self.config.dataset.segment_frames
-                * self.config.mel_spectrogram.hop_length
+                * self.config.model.input.mel_spectrogram.hop_length
             )
             audio = audio[onset_sample:offset_sample]
             pad = torch.zeros(

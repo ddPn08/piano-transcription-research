@@ -1,20 +1,9 @@
-mel_spectrogram:
-  sample_rate: 16000
-  n_fft: 2048
-  win_length: 2048
-  hop_length: 512
-  f_min: 30
-  n_mels: 229
-  power: 1
-  norm: slaney
-midi:
-  min_midi: 21
-  max_midi: 108
+
 dataset:
-  dataset_dir: ../../maestro-v3.0.0-preprocessed
+  dataset_dir: maestro-v3.0.0-preprocessed
   segment_frames: 512
 training:
-  mode: pedal
+  mode: note
   accelerator: gpu
   devices: "0,"
   batch_size: 16
@@ -23,8 +12,23 @@ training:
   max_epochs: 100
   optimizer: adam
   output_dir: output
-  logger: tensorboard
-  logger_name: default
-  logger_project: piano-transcription-research
-onsets_and_frames:
-  model_complexity: 48
+  logger:
+    type: tensorboard
+    name: default
+model:
+  type: onsets_and_frames
+  input:
+    mel_spectrogram:
+      sample_rate: 16000
+      n_fft: 2048
+      win_length: 2048
+      hop_length: 512
+      f_min: 30
+      n_mels: 229
+      power: 1
+      norm: slaney
+  output:
+    midi:
+      min_midi: 21
+      max_midi: 108
+  complexity: 48

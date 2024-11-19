@@ -1,5 +1,7 @@
 maestro-v3.0.0-preprocessed/
 lightning_logs/
+*.ckpt
+*.safetensors
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

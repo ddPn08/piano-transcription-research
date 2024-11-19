@@ -50,10 +50,10 @@ def process_metadata(
         midi_label = create_label_with_sharpness(
             notes,
             pedals,
-            config.midi.max_midi,
-            config.midi.min_midi,
-            config.mel_spectrogram.hop_length,
-            config.mel_spectrogram.sample_rate,
+            config.model.output.midi.max_midi,
+            config.model.output.midi.min_midi,
+            config.model.input.mel_spectrogram.hop_length,
+            config.model.input.mel_spectrogram.sample_rate,
         )
 
         torch.save(audio, audio_path)
@@ -77,11 +77,6 @@ def main(
     for split in ["train", "validation", "test"]:
         os.makedirs(os.path.join(label_dir, split), exist_ok=True)
         os.makedirs(os.path.join(audio_dir, split), exist_ok=True)
-
-    valid_metadata = [m for m in metadata if m.split in ["validation"]][:10]
-    train_metadata = [m for m in metadata if m.split in ["train"]][:100]
-
-    metadata = valid_metadata + train_metadata
 
     processes = []
 

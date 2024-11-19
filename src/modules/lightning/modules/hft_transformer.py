@@ -5,6 +5,7 @@ import torch
 import torch.nn.functional as F
 from lightning.pytorch import LightningModule
 
+from modules.audio import create_mel_transform
 from modules.label import extract_notes, extract_pedals
 from modules.models.hft_transformer import HftTransformer, HftTransformerPedal
 
@@ -22,7 +23,7 @@ def weighted_mse_loss(
         return (onset_label * (velocity_label - velocity_pred) ** 2).sum() / denominator
 
 
-class TranscriberModule(LightningModule):
+class HftTransformerTrainingModule(LightningModule):
     def __init__(
         self,
         config: Config,
@@ -30,13 +31,18 @@ class TranscriberModule(LightningModule):
         optimizer_class: Any,
     ):
         super().__init__()
+        if config.model.type != "hft_transformer":
+            raise ValueError("Model type must be hft_transformer")
+
         self.config = config
         self.mode = model.mode
         self.model = model
         self.optimizer_class = optimizer_class
         self.lr = config.training.learning_rate
 
-        self.mel_transform = config.mel_spectrogram.mel_transform().to(self.device)
+        self.mel_transform = create_mel_transform(
+            config.model.input.mel_spectrogram
+        ).to(self.device)
 
     def forward(self, x: torch.Tensor):
         return self.model(x)
@@ -46,9 +52,9 @@ class TranscriberModule(LightningModule):
         mel_spec = torch.log(mel_spec + 1e-8).T
 
         num_feature_frames = (
-            self.config.hft_transformer.margin_b
+            self.config.model.margin_b
             + self.config.dataset.segment_frames
-            + self.config.hft_transformer.margin_f
+            + self.config.model.margin_f
         )
 
         if mel_spec.shape[0] < num_feature_frames:
@@ -303,24 +309,24 @@ class TranscriberModule(LightningModule):
                 offset_label[i].cpu().numpy(),
                 frame_label[i].cpu().numpy(),
                 velocity_label[i].cpu().numpy(),
-                self.config.midi.min_midi,
-                self.config.midi.max_midi,
+                self.config.model.output.midi.min_midi,
+                self.config.model.output.midi.max_midi,
             )
             pitches_est_A, intervals_est_A, velocities_est_A = extract_notes(
                 onset_pred_A[i].sigmoid().detach().cpu().numpy(),
                 offset_pred_A[i].sigmoid().detach().cpu().numpy(),
                 frame_pred_A[i].sigmoid().detach().cpu().numpy(),
-                velocity_pred_A[i].sigmoid().argmax(2).detach().cpu().numpy(),
-                self.config.midi.min_midi,
-                self.config.midi.max_midi,
+                velocity_pred_A[i].argmax(2).detach().cpu().numpy(),
+                self.config.model.output.midi.min_midi,
+                self.config.model.output.midi.max_midi,
             )
             pitches_est_B, intervals_est_B, velocities_est_B = extract_notes(
                 onset_pred_B[i].sigmoid().detach().cpu().numpy(),
                 offset_pred_B[i].sigmoid().detach().cpu().numpy(),
                 frame_pred_B[i].sigmoid().detach().cpu().numpy(),
-                velocity_pred_B[i].sigmoid().argmax(2).detach().cpu().numpy(),
-                self.config.midi.min_midi,
-                self.config.midi.max_midi,
+                velocity_pred_B[i].argmax(2).detach().cpu().numpy(),
+                self.config.model.output.midi.min_midi,
+                self.config.model.output.midi.max_midi,
             )
 
             pitches_est, intervals_est, velocities_est = (
@@ -337,9 +343,9 @@ class TranscriberModule(LightningModule):
                 np.array(intervals_est),
                 np.array(velocities_est),
                 frame_label.shape,
-                self.config.mel_spectrogram.hop_length,
-                self.config.mel_spectrogram.sample_rate,
-                self.config.midi.min_midi,
+                self.config.model.input.mel_spectrogram.hop_length,
+                self.config.model.input.mel_spectrogram.sample_rate,
+                self.config.model.output.midi.min_midi,
             )
             for key, value in metrics.items():
                 self.log(f"val/{key}", value, on_epoch=True, sync_dist=True)
@@ -444,8 +450,8 @@ class TranscriberModule(LightningModule):
                 np.array(intervals_ref),
                 np.array(intervals_est),
                 frame_label.shape,
-                self.config.mel_spectrogram.hop_length,
-                self.config.mel_spectrogram.sample_rate,
+                self.config.model.input.mel_spectrogram.hop_length,
+                self.config.model.input.mel_spectrogram.sample_rate,
             )
             for key, value in metrics.items():
                 self.log(f"val/{key}", value, on_epoch=True, sync_dist=True)

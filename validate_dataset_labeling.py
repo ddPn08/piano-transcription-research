@@ -19,10 +19,10 @@ def main(midi_path: str):
     label = create_label_with_sharpness(
         notes,
         pedals,
-        config.midi.max_midi,
-        config.midi.min_midi,
-        config.mel_spectrogram.hop_length,
-        config.mel_spectrogram.sample_rate,
+        config.model.output.midi.max_midi,
+        config.model.output.midi.min_midi,
+        config.model.input.mel_spectrogram.hop_length,
+        config.model.input.mel_spectrogram.sample_rate,
     )
 
     pitch_ref, intervals_ref, velocities_ref = extract_notes(
@@ -30,8 +30,8 @@ def main(midi_path: str):
         label.offset,
         label.frame,
         label.velocity / 127.0,
-        config.midi.min_midi,
-        config.midi.max_midi,
+        config.model.output.midi.min_midi,
+        config.model.output.midi.max_midi,
     )
     pedals_intervals_ref = extract_pedals(
         label.pedal_onset,
@@ -39,13 +39,16 @@ def main(midi_path: str):
         label.pedal_frame,
     )
 
-    scaling = config.mel_spectrogram.hop_length / config.mel_spectrogram.sample_rate
+    scaling = (
+        config.model.input.mel_spectrogram.hop_length
+        / config.model.input.mel_spectrogram.sample_rate
+    )
 
     intervals_ref = (intervals_ref * scaling).reshape(-1, 2)
     pedals_intervals_ref = (pedals_intervals_ref * scaling).reshape(-1, 2)
 
     notes_ref = create_notes(
-        pitch_ref, intervals_ref, velocities_ref, config.midi.min_midi
+        pitch_ref, intervals_ref, velocities_ref, config.model.output.midi.min_midi
     )
     pedals_ref = create_pedals(pedals_intervals_ref)
 

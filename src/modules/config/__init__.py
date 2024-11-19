@@ -1,9 +1,16 @@
-from typing import Literal
+from typing import Literal, Union
 
 import torch
 import torchaudio
 from lightning.fabric.plugins.precision.precision import _PRECISION_INPUT
 from pydantic import BaseModel
+
+from .hft_transformer import HftTransformerConfig
+from .logger import (
+    TensorboardLoggerConfig,
+    WandbLoggerConfig,
+)
+from .onsets_and_frames import OnsetsAndFramesConfig
 
 
 class MelSpectrogramConfig(BaseModel):
@@ -44,11 +51,6 @@ class MelSpectrogramConfig(BaseModel):
         return torchaudio.transforms.MelSpectrogram(**kwargs)
 
 
-class MidiConfig(BaseModel):
-    min_midi: int = 21
-    max_midi: int = 108
-
-
 class DatasetConfig(BaseModel):
     dataset_dir: str = "maetsro-v3.0.0"
     segment_frames: int = 128
@@ -64,28 +66,19 @@ class TrainingConfig(BaseModel):
     learning_rate: float = 1e-4
     max_epochs: int = 100
     optimizer: Literal["adam"] = "adam"
-    lr_scheduler: str | None = None
     output_dir: str = "output"
 
-    logger: str = "tensorboard"
-    logger_name: str = "default"
-    logger_project: str = "piano-transcription-research"
+    save_every_n_steps: int | None = None
+    save_every_n_epochs: int | None = None
+
+    logger: Union[TensorboardLoggerConfig, WandbLoggerConfig] = (
+        TensorboardLoggerConfig()
+    )
 
     resume_from_checkpoint: str | None = None
 
 
-class OnsetsAndFramesConfig(BaseModel):
-    model_complexity: int = 48
-
-class HftTransformerConfig(BaseModel):
-    margin_b: int = 32
-    margin_f: int = 32
-    num_frame: int = 128
-
 class Config(BaseModel):
-    mel_spectrogram: MelSpectrogramConfig = MelSpectrogramConfig()
-    midi: MidiConfig = MidiConfig()
     dataset: DatasetConfig = DatasetConfig()
     training: TrainingConfig = TrainingConfig()
-    onsets_and_frames: OnsetsAndFramesConfig | None = None
-    hft_transformer: HftTransformerConfig | None = None
+    model: Union[HftTransformerConfig, OnsetsAndFramesConfig] = HftTransformerConfig()
