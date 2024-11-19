@@ -416,7 +416,7 @@ def extract_notes(
                 pitches.pop()
                 velocities.pop()
 
-    return np.array(pitches), np.array(intervals), np.array(velocities)
+    return pitches, intervals, velocities
 
 
 def extract_pedals(

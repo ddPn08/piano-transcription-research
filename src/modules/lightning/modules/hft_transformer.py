@@ -324,18 +324,18 @@ class TranscriberModule(LightningModule):
             )
 
             pitches_est, intervals_est, velocities_est = (
-                np.concatenate([pitches_est_A, pitches_est_B]),
-                np.concatenate([intervals_est_A, intervals_est_B]),
-                np.concatenate([velocities_est_A, velocities_est_B]),
+                pitches_est_A.extend(pitches_est_B),
+                intervals_est_A.extend(intervals_est_B),
+                velocities_est_A.extend(velocities_est_B),
             )
 
             metrics = evaluate_note(
-                pitches_ref,
-                intervals_ref,
-                velocities_ref,
-                pitches_est,
-                intervals_est,
-                velocities_est,
+                np.array(pitches_ref),
+                np.array(intervals_ref),
+                np.array(velocities_ref),
+                np.array(pitches_est),
+                np.array(intervals_est),
+                np.array(velocities_est),
                 frame_label.shape,
                 self.config.mel_spectrogram.hop_length,
                 self.config.mel_spectrogram.sample_rate,
@@ -438,11 +438,11 @@ class TranscriberModule(LightningModule):
                 frame_pred_B[i].sigmoid().detach().cpu().numpy(),
             )
 
-            intervals_est = np.concatenate([intervals_est_A, intervals_est_B])
+            intervals_est = intervals_est_A.extend(intervals_est_B)
 
             metrics = evaluate_pedal(
-                intervals_ref,
-                intervals_est,
+                np.array(intervals_ref),
+                np.array(intervals_est),
                 frame_label.shape,
                 self.config.mel_spectrogram.hop_length,
                 self.config.mel_spectrogram.sample_rate,
