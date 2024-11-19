@@ -446,7 +446,7 @@ def extract_pedals(
     ):
         intervals.append((time_onset, offset_value))
 
-    return np.array(intervals)
+    return intervals
 
 
 def create_notes(
