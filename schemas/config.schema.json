@@ -18,6 +18,68 @@
         },
         "HftTransformerConfig": {
             "properties": {
+                "type": {
+                    "const": "hft_transformer",
+                    "default": "hft_transformer",
+                    "enum": [
+                        "hft_transformer"
+                    ],
+                    "title": "Type",
+                    "type": "string"
+                },
+                "input": {
+                    "$ref": "#/$defs/InputConfig",
+                    "default": {
+                        "mel_spectrogram": {
+                            "center": null,
+                            "f_max": 8000.0,
+                            "f_min": 30.0,
+                            "hop_length": 512,
+                            "mel_scale": "htk",
+                            "n_fft": 2048,
+                            "n_mels": 229,
+                            "norm": "slaney",
+                            "normalized": null,
+                            "onesided": null,
+                            "pad": null,
+                            "pad_mode": null,
+                            "power": 1.0,
+                            "sample_rate": 16000,
+                            "win_length": 2048,
+                            "window_fn": null,
+                            "wkwargs": null
+                        }
+                    }
+                },
+                "output": {
+                    "$ref": "#/$defs/OutputConfig",
+                    "default": {
+                        "midi": {
+                            "max_midi": 108,
+                            "min_midi": 21
+                        }
+                    }
+                },
+                "num_frame": {
+                    "default": 128,
+                    "title": "Num Frame",
+                    "type": "integer"
+                },
+                "cnn_channel": {
+                    "default": 4,
+                    "title": "Cnn Channel",
+                    "type": "integer"
+                },
+                "cnn_kernel": {
+                    "default": 5,
+                    "title": "Cnn Kernel",
+                    "type": "integer"
+                },
+                "hid_dim": {
+                    "default": 256,
+                    "title": "Hid Dim",
+                    "type": "integer"
+                },
                 "margin_b": {
                     "default": 32,
                     "title": "Margin B",
@@ -28,13 +90,61 @@
                     "title": "Margin F",
                     "type": "integer"
                 },
-                "num_frame": {
-                    "default": 128,
-                    "title": "Num Frame",
+                "num_layers": {
+                    "default": 3,
+                    "title": "Num Layers",
+                    "type": "integer"
+                },
+                "num_heads": {
+                    "default": 4,
+                    "title": "Num Heads",
+                    "type": "integer"
+                },
+                "pf_dim": {
+                    "default": 512,
+                    "title": "Pf Dim",
+                    "type": "integer"
+                },
+                "dropout": {
+                    "default": 0.1,
+                    "title": "Dropout",
+                    "type": "number"
+                },
+                "num_velocity": {
+                    "default": 127,
+                    "title": "Num Velocity",
                     "type": "integer"
                 }
             },
             "title": "HftTransformerConfig",
+            "type": "object"
+        },
+        "InputConfig": {
+            "properties": {
+                "mel_spectrogram": {
+                    "$ref": "#/$defs/MelSpectrogramConfig",
+                    "default": {
+                        "sample_rate": 16000,
+                        "n_fft": 2048,
+                        "win_length": 2048,
+                        "hop_length": 512,
+                        "f_min": 30.0,
+                        "f_max": 8000.0,
+                        "pad": null,
+                        "n_mels": 229,
+                        "window_fn": null,
+                        "power": 1.0,
+                        "normalized": null,
+                        "wkwargs": null,
+                        "center": null,
+                        "pad_mode": null,
+                        "onesided": null,
+                        "norm": "slaney",
+                        "mel_scale": "htk"
+                    }
+                }
+            },
+            "title": "InputConfig",
             "type": "object"
         },
         "MelSpectrogramConfig": {
@@ -209,6 +319,48 @@
         },
         "OnsetsAndFramesConfig": {
             "properties": {
+                "type": {
+                    "const": "onsets_and_frames",
+                    "default": "onsets_and_frames",
+                    "enum": [
+                        "onsets_and_frames"
+                    ],
+                    "title": "Type",
+                    "type": "string"
+                },
+                "input": {
+                    "$ref": "#/$defs/InputConfig",
+                    "default": {
+                        "mel_spectrogram": {
+                            "center": null,
+                            "f_max": 8000.0,
+                            "f_min": 30.0,
+                            "hop_length": 512,
+                            "mel_scale": "htk",
+                            "n_fft": 2048,
+                            "n_mels": 229,
+                            "norm": "slaney",
+                            "normalized": null,
+                            "onesided": null,
+                            "pad": null,
+                            "pad_mode": null,
+                            "power": 1.0,
+                            "sample_rate": 16000,
+                            "win_length": 2048,
+                            "window_fn": null,
+                            "wkwargs": null
+                        }
+                    }
+                },
+                "output": {
+                    "$ref": "#/$defs/OutputConfig",
+                    "default": {
+                        "midi": {
+                            "max_midi": 108,
+                            "min_midi": 21
+                        }
+                    }
+                },
                 "model_complexity": {
                     "default": 48,
                     "title": "Model Complexity",
@@ -216,6 +368,44 @@
                 }
             },
             "title": "OnsetsAndFramesConfig",
+            "type": "object"
+        },
+        "OutputConfig": {
+            "properties": {
+                "midi": {
+                    "$ref": "#/$defs/MidiConfig",
+                    "default": {
+                        "min_midi": 21,
+                        "max_midi": 108
+                    }
+                }
+            },
+            "title": "OutputConfig",
+            "type": "object"
+        },
+        "TensorboardLoggerConfig": {
+            "properties": {
+                "type": {
+                    "const": "tensorboard",
+                    "default": "tensorboard",
+                    "enum": [
+                        "tensorboard"
+                    ],
+                    "title": "Type",
+                    "type": "string"
+                },
+                "name": {
+                    "default": "default",
+                    "title": "Name",
+                    "type": "string"
+                },
+                "project": {
+                    "default": "piano-transcription-research",
+                    "title": "Project",
+                    "type": "string"
+                }
+            },
+            "title": "TensorboardLoggerConfig",
             "type": "object"
         },
         "TrainingConfig": {
@@ -304,37 +494,36 @@
                     "title": "Optimizer",
                     "type": "string"
                 },
-                "lr_scheduler": {
-                    "anyOf": [
-                        {
-                            "type": "string"
-                        },
-                        {
-                            "type": "null"
-                        }
-                    ],
-                    "default": null,
-                    "title": "Lr Scheduler"
-                },
                 "output_dir": {
                     "default": "output",
                     "title": "Output Dir",
                     "type": "string"
                 },
+                "save_every_n_steps": {
+                    "default": 100,
+                    "title": "Save Every N Steps",
+                    "type": "integer"
+                },
+                "save_every_n_epochs": {
+                    "default": 1,
+                    "title": "Save Every N Epochs",
+                    "type": "integer"
+                },
                 "logger": {
-                    "default": "tensorboard",
-                    "title": "Logger",
-                    "type": "string"
-                },
-                "logger_name": {
-                    "default": "default",
-                    "title": "Logger Name",
-                    "type": "string"
-                },
-                "logger_project": {
-                    "default": "piano-transcription-research",
-                    "title": "Logger Project",
-                    "type": "string"
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TensorboardLoggerConfig"
+                        },
+                        {
+                            "$ref": "#/$defs/WandbLoggerConfig"
+                        }
+                    ],
+                    "default": {
+                        "type": "tensorboard",
+                        "name": "default",
+                        "project": "piano-transcription-research"
+                    },
+                    "title": "Logger"
                 },
                 "resume_from_checkpoint": {
                     "anyOf": [
@@ -351,38 +540,85 @@
             },
             "title": "TrainingConfig",
             "type": "object"
+        },
+        "WandbLoggerConfig": {
+            "properties": {
+                "type": {
+                    "const": "wandb",
+                    "default": "wandb",
+                    "enum": [
+                        "wandb"
+                    ],
+                    "title": "Type",
+                    "type": "string"
+                },
+                "name": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Name"
+                },
+                "project": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Project"
+                },
+                "id": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Id"
+                },
+                "tags": {
+                    "anyOf": [
+                        {
+                            "items": {},
+                            "type": "array"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Tags"
+                },
+                "notes": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Notes"
+                }
+            },
+            "title": "WandbLoggerConfig",
+            "type": "object"
         }
     },
     "properties": {
-        "mel_spectrogram": {
-            "$ref": "#/$defs/MelSpectrogramConfig",
-            "default": {
-                "sample_rate": 16000,
-                "n_fft": 2048,
-                "win_length": 2048,
-                "hop_length": 512,
-                "f_min": 30.0,
-                "f_max": 8000.0,
-                "pad": null,
-                "n_mels": 229,
-                "window_fn": null,
-                "power": 1.0,
-                "normalized": null,
-                "wkwargs": null,
-                "center": null,
-                "pad_mode": null,
-                "onesided": null,
-                "norm": "slaney",
-                "mel_scale": "htk"
-            }
-        },
-        "midi": {
-            "$ref": "#/$defs/MidiConfig",
-            "default": {
-                "min_midi": 21,
-                "max_midi": 108
-            }
-        },
         "dataset": {
             "$ref": "#/$defs/DatasetConfig",
             "default": {
@@ -402,35 +638,68 @@
                 "learning_rate": 0.0001,
                 "max_epochs": 100,
                 "optimizer": "adam",
-                "lr_scheduler": null,
                 "output_dir": "output",
-                "logger": "tensorboard",
-                "logger_name": "default",
-                "logger_project": "piano-transcription-research",
+                "save_every_n_steps": 100,
+                "save_every_n_epochs": 1,
+                "logger": {
+                    "name": "default",
+                    "project": "piano-transcription-research",
+                    "type": "tensorboard"
+                },
                 "resume_from_checkpoint": null
             }
         },
-        "onsets_and_frames": {
-            "anyOf": [
-                {
-                    "$ref": "#/$defs/OnsetsAndFramesConfig"
-                },
-                {
-                    "type": "null"
-                }
-            ],
-            "default": null
-        },
-        "hft_transformer": {
+        "model": {
             "anyOf": [
                 {
                     "$ref": "#/$defs/HftTransformerConfig"
                 },
                 {
-                    "type": "null"
+                    "$ref": "#/$defs/OnsetsAndFramesConfig"
                 }
             ],
-            "default": null
+            "default": {
+                "type": "hft_transformer",
+                "input": {
+                    "mel_spectrogram": {
+                        "center": null,
+                        "f_max": 8000.0,
+                        "f_min": 30.0,
+                        "hop_length": 512,
+                        "mel_scale": "htk",
+                        "n_fft": 2048,
+                        "n_mels": 229,
+                        "norm": "slaney",
+                        "normalized": null,
+                        "onesided": null,
+                        "pad": null,
+                        "pad_mode": null,
+                        "power": 1.0,
+                        "sample_rate": 16000,
+                        "win_length": 2048,
+                        "window_fn": null,
+                        "wkwargs": null
+                    }
+                },
+                "output": {
+                    "midi": {
+                        "max_midi": 108,
+                        "min_midi": 21
+                    }
+                },
+                "num_frame": 128,
+                "cnn_channel": 4,
+                "cnn_kernel": 5,
+                "hid_dim": 256,
+                "margin_b": 32,
+                "margin_f": 32,
+                "num_layers": 3,
+                "num_heads": 4,
+                "pf_dim": 512,
+                "dropout": 0.1,
+                "num_velocity": 127
+            },
+            "title": "Model"
         }
     },
     "title": "Config",
