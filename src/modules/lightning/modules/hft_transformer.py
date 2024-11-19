@@ -324,9 +324,9 @@ class TranscriberModule(LightningModule):
             )
 
             pitches_est, intervals_est, velocities_est = (
-                pitches_est_A.extend(pitches_est_B),
-                intervals_est_A.extend(intervals_est_B),
-                velocities_est_A.extend(velocities_est_B),
+                pitches_est_A + pitches_est_B,
+                intervals_est_A + intervals_est_B,
+                velocities_est_A + velocities_est_B,
             )
 
             metrics = evaluate_note(
@@ -438,7 +438,7 @@ class TranscriberModule(LightningModule):
                 frame_pred_B[i].sigmoid().detach().cpu().numpy(),
             )
 
-            intervals_est = intervals_est_A.extend(intervals_est_B)
+            intervals_est = intervals_est_A + intervals_est_B
 
             metrics = evaluate_pedal(
                 np.array(intervals_ref),

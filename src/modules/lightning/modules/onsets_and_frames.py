@@ -1,5 +1,6 @@
 from typing import Any
 
+import numpy as np
 import torch
 import torch.nn.functional as F
 from lightning.pytorch import LightningModule
@@ -230,12 +231,12 @@ class TranscriberModule(LightningModule):
                 self.config.midi.max_midi,
             )
             metrics = evaluate_note(
-                pitches_ref,
-                intervals_ref,
-                velocities_ref,
-                pitches_est,
-                intervals_est,
-                velocities_est,
+                np.array(pitches_ref),
+                np.array(intervals_ref),
+                np.array(velocities_ref),
+                np.array(pitches_est),
+                np.array(intervals_est),
+                np.array(velocities_est),
                 frame_label.shape,
                 self.config.mel_spectrogram.hop_length,
                 self.config.mel_spectrogram.sample_rate,
@@ -292,8 +293,8 @@ class TranscriberModule(LightningModule):
                 frame_pred[i].sigmoid().detach().cpu().numpy(),
             )
             metrics = evaluate_pedal(
-                intervals_ref,
-                intervals_est,
+                np.array(intervals_ref),
+                np.array(intervals_est),
                 frame_label.shape,
                 self.config.mel_spectrogram.hop_length,
                 self.config.mel_spectrogram.sample_rate,
